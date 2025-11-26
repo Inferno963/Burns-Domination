@@ -1,0 +1,687 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!-- START OF FILE burns v2.1.html -->
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#70D1FE">
+
+    <title>Mr. Burns: Global Domination</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap'); 
+
+        :root {
+            --simpson-yellow: #FFD90F;
+            --simpson-blue: #70D1FE;
+            --burns-green: #388E3C;
+            --nuclear-neon: #00ff00;
+            --nuclear-red: #FF3D3D;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; 
+            background-color: var(--simpson-blue);
+            font-family: 'Gloria Hallelujah', cursive;
+            touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent;
+            position: fixed;
+        }
+
+        /* --- SIMPSONS CLOUDS BACKGROUND --- */
+        .cloud-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--simpson-blue);
+            z-index: -1; overflow: hidden;
+        }
+        .cloud {
+            position: absolute; background: white; border-radius: 50%;
+            opacity: 0.8; animation: floatCloud linear infinite;
+        }
+        .cloud::after, .cloud::before {
+            content: ''; position: absolute; background: white; border-radius: 50%;
+        }
+        .c1 { width: 100px; height: 40px; top: 10%; left: -120px; animation-duration: 25s; }
+        .c1::after { width: 50px; height: 50px; top: -25px; left: 15px; }
+        .c1::before { width: 40px; height: 40px; top: -15px; left: 45px; }
+
+        .c2 { width: 80px; height: 35px; top: 40%; left: -100px; animation-duration: 18s; animation-delay: 5s; opacity: 0.6; transform: scale(0.7); }
+        .c2::after { width: 40px; height: 40px; top: -20px; left: 10px; }
+
+        .c3 { width: 120px; height: 50px; top: 70%; left: -150px; animation-duration: 30s; animation-delay: 2s; }
+        .c3::after { width: 60px; height: 60px; top: -30px; left: 20px; }
+        
+        @keyframes floatCloud { 0% { left: -150px; } 100% { left: 110%; } }
+
+        /* --- UI ELEMENTS --- */
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 100;
+            display: none; flex-direction: column; justify-content: space-between;
+        }
+
+        /* MONITOR LOOK FOR TOP BAR */
+        #top-bar {
+            background: #111; color: var(--nuclear-neon); 
+            padding: 8px 15px; padding-top: max(8px, env(safe-area-inset-top));
+            border-bottom: 4px solid #444;
+            display: flex; justify-content: space-between; align-items: center;
+            font-family: 'VT323', monospace; font-size: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6); pointer-events: auto;
+            position: relative; overflow: hidden;
+        }
+        #top-bar::after {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(to bottom, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px; z-index: 2; pointer-events: none;
+        }
+
+        .stat { 
+            border: 1px solid #333; padding: 2px 10px; border-radius: 4px; 
+            background: #000; min-width: 60px; text-align: center;
+            text-shadow: 0 0 5px var(--nuclear-neon);
+        }
+        .stat.land { color: var(--simpson-yellow); text-shadow: 0 0 5px var(--simpson-yellow); }
+
+        #controls {
+            padding: 15px; display: flex; justify-content: center; gap: 20px;
+            pointer-events: auto; padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+
+        .gadget {
+            width: 70px; height: 70px;
+            border-radius: 15px; border: 3px solid #333;
+            background: linear-gradient(145deg, #f0f0f0, #cacaca);
+            font-size: 32px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 6px 0 #444, 0 10px 10px rgba(0,0,0,0.3);
+            position: relative; transition: transform 0.1s;
+        }
+        .gadget:active { transform: translateY(6px); box-shadow: 0 0 0 #444, inset 0 2px 5px rgba(0,0,0,0.2); }
+        .gadget.disabled { filter: grayscale(100%) brightness(0.7); opacity: 0.6; pointer-events: none; }
+        
+        .label {
+            position: absolute; bottom: -22px; background: #222; color: white;
+            font-size: 10px; padding: 2px 6px; border-radius: 4px;
+            white-space: nowrap; font-family: sans-serif; letter-spacing: 0.5px;
+            border: 1px solid white;
+        }
+
+        /* --- MESSAGE BOX (TRANSPARENT) --- */
+        #msg-box {
+            position: absolute; top: 90px; width: 100%;
+            display: flex; flex-direction: column; align-items: center;
+            pointer-events: none; z-index: 110;
+        }
+        .msg {
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(4px); 
+            -webkit-backdrop-filter: blur(4px); 
+            border: 4px solid black;
+            padding: 10px 20px; margin-top: 5px;
+            border-radius: 25px; font-weight: bold; font-size: 1.1rem;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.2);
+            animation: popUp 3s forwards;
+            max-width: 85%; text-align: center;
+            font-family: 'Gloria Hallelujah', cursive;
+        }
+        @keyframes popUp { 
+            0% { opacity: 0; transform: scale(0.5) rotate(-3deg); } 
+            10% { opacity: 1; transform: scale(1.1) rotate(3deg); } 
+            20% { transform: scale(1) rotate(0deg); }
+            90% { opacity: 1; transform: translateY(0); } 
+            100% { opacity: 0; transform: translateY(-50px); } 
+        }
+
+        /* --- PARTICLES --- */
+        .particle {
+            position: absolute; font-weight: bold; pointer-events: none;
+            animation: floatUp 1.5s ease-out forwards; z-index: 105;
+            text-shadow: 1px 1px 0 #fff;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+        }
+
+        /* --- START SCREEN --- */
+        #start-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--simpson-blue); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center;
+        }
+        
+        .logo-container {
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            padding: 40px; border-radius: 50%; margin-bottom: 20px;
+        }
+
+        .start-btn {
+            background: var(--simpson-yellow); border: 4px solid black;
+            font-family: inherit; font-size: 2rem; padding: 20px 50px;
+            border-radius: 30px; cursor: pointer; margin-top: 20px;
+            box-shadow: 8px 8px 0 rgba(0,0,0,0.5);
+            animation: pulseBtn 2s infinite;
+            pointer-events: auto; touch-action: manipulation;
+        }
+        .start-btn:active { background: white; transform: scale(0.95); box-shadow: 4px 4px 0 rgba(0,0,0,0.5); }
+        @keyframes pulseBtn { 0%{transform:scale(1);} 50%{transform:scale(1.05);} 100%{transform:scale(1);} }
+
+        /* --- GAME OVER --- */
+        #game-over-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 200;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+        .result-card {
+            background: var(--simpson-yellow); color: black; border: 5px solid black;
+            padding: 25px; border-radius: 20px; width: 85%; max-width: 400px;
+            box-shadow: 0 0 30px rgba(255, 217, 15, 0.4);
+            animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+        .score-row { display: flex; justify-content: space-between; font-size: 1.2rem; margin: 12px 0; border-bottom: 2px dashed black; }
+        .restart-btn {
+            background: var(--nuclear-red); border: 3px solid black; color: white;
+            font-size: 1.5rem; padding: 12px 35px; border-radius: 12px; margin-top: 15px;
+            box-shadow: 5px 5px 0 black;
+        }
+
+        /* GLOBUS STYLES */
+        #globe-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        
+        .ocean-fill { fill: url(#oceanGradient); }
+        .ocean-stroke { fill: none; stroke: black; stroke-width: 2px; }
+        
+        .atmosphere {
+            fill: none; stroke: rgba(112, 209, 254, 0.6); stroke-width: 15px;
+            filter: blur(8px);
+        }
+
+        .country { 
+            fill: #F0D060; stroke: rgba(0,0,0,0.5); stroke-width: 0.5px; 
+            transition: fill 0.3s; vector-effect: non-scaling-stroke; 
+        }
+        .country:hover { fill: #ffeeba; }
+
+        .country.plant { fill: var(--nuclear-red); stroke: #330000; }
+        .country.protest { fill: #ffffff; stroke-width: 1px; }
+        .country.meltdown { fill: #111; stroke: red; stroke-width: 1px; }
+        .country.eco { fill: var(--burns-green); }
+
+        .atom-marker {
+            pointer-events: none; fill: black; font-size: 24px;
+            text-shadow: 0 0 5px #0f0; filter: drop-shadow(0 0 2px black);
+            animation: pulseSize 1.5s infinite ease-in-out; 
+            text-anchor: middle; dominant-baseline: central;
+        }
+        .hazard {
+            font-size: 24px; pointer-events: none; 
+            filter: drop-shadow(0 0 3px white); z-index: 20;
+            animation: bounce 0.8s infinite alternate; 
+            text-anchor: middle; dominant-baseline: central;
+        }
+
+        @keyframes pulseSize { 0% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0.9; } }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="cloud-bg">
+        <div class="cloud c1"></div>
+        <div class="cloud c2"></div>
+        <div class="cloud c3"></div>
+    </div>
+
+    <!-- START SCREEN -->
+    <div id="start-screen">
+        <div class="logo-container">
+            <div style="font-size: 5rem; line-height: 1;">☢️</div>
+        </div>
+        <h1 style="font-size: 2.5rem; margin: 0; -webkit-text-stroke: 2px black; color: white; text-shadow: 4px 4px 0 black;">BURNS<br>DOMINATION</h1>
+        
+        <button id="start-btn-id" class="start-btn">SPIELEN</button>
+        
+        <div style="margin-top: 20px; font-size: 0.9rem; font-weight: bold;">
+            Tippe Länder an, um Kraftwerke zu bauen!
+        </div>
+    </div>
+
+    <!-- UI LAYER -->
+    <div id="ui-layer">
+        <div id="top-bar">
+            <div class="stat">💰 <span id="money-display">1000</span></div>
+            <div class="stat land">🌍 <span id="land-display">0</span></div>
+            <div class="stat" style="color: #ff3d3d;">☢️ <span id="plant-display">0</span></div>
+        </div>
+        
+        <div id="msg-box"></div>
+        
+        <div id="controls">
+            <div class="gadget" id="btn-hounds" onclick="game.releaseHounds()">
+                🐕
+                <div class="label">Hounds ($500)</div>
+            </div>
+            <div class="gadget" id="btn-smithers" onclick="game.callSmithers()">
+                👓
+                <div class="label">Fix All ($2k)</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-over-screen">
+        <div class="result-card">
+            <h1 style="margin: 0 0 15px 0;">BILANZ</h1>
+            <div class="score-row"><span>Cash:</span><span id="end-money">0</span></div>
+            <div class="score-row"><span>Macht:</span><span id="end-land">0</span></div>
+            <div class="score-row" style="border:none; font-weight:bold; font-size: 1.5rem; margin-top: 20px;">
+                <span>Total:</span><span id="end-total">0</span>
+            </div>
+            <div id="end-rating" style="font-size: 3rem; font-weight: bold; color: var(--burns-green); transform: rotate(-5deg); text-shadow: 2px 2px 0 black; margin: 20px 0;">
+                EXCELLENT!
+            </div>
+            <button class="restart-btn" onclick="game.reset()">NOCHMAL!</button>
+        </div>
+    </div>
+
+    <div id="globe-container"></div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <script>
+        // --- SOUND SETUP (KORRIGIERT) ---
+        // Variable global definieren
+        let dohSound = null;
+
+        // --- MOBILE START SETUP ---
+        const startBtn = document.getElementById('start-btn-id');
+        let gameInitialized = false;
+
+        function triggerStart(e) {
+            if(e) { e.preventDefault(); e.stopPropagation(); }
+            if(gameInitialized) return;
+            gameInitialized = true;
+
+            // --- AUDIO FIX ---
+            // Wir erstellen das Audio-Objekt hier, bei der User-Interaktion.
+            // preload="auto" hilft dem Browser, die Datei sofort zu laden.
+            dohSound = new Audio('doh.mp3');
+            dohSound.preload = 'auto';
+            dohSound.load();
+            
+            // "Unlock" Hack für iOS/Android:
+            // Kurz anspielen und sofort pausieren, damit der Browser die Wiedergabe später erlaubt.
+            dohSound.play().then(() => {
+                dohSound.pause();
+                dohSound.currentTime = 0;
+            }).catch(error => {
+                console.log("Audio Autoplay Unlock fehlgeschlagen (noch nicht geladen?):", error);
+            });
+
+            const doc = document.documentElement;
+            if (doc.requestFullscreen) doc.requestFullscreen().catch(() => {});
+            else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen();
+
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('ui-layer').style.display = 'flex';
+
+            visuals.init();
+            setInterval(() => game.loop(), 100);
+        }
+
+        startBtn.addEventListener('touchstart', triggerStart, {passive: false});
+        startBtn.addEventListener('click', triggerStart);
+
+        const quotes = [
+            "Ausgezeichnet!", "Gekauft!", "Alles meins!", 
+            "Verstrahlt!", "Wunderschöner Müll!", "Das gehört mir!",
+            "Smithers, notieren!", "Mehr Strom!", "Ha Ha!"
+        ];
+        function getQuote(n) { return quotes[Math.floor(Math.random()*quotes.length)] + " (" + n + ")"; }
+
+        // --- GAME LOGIC ---
+        const game = {
+            money: 1000, plants: 0, landScore: 0, states: {}, 
+            hazardMarkers: [], plantMarkers: [], countryData: {}, gameOver: false,
+            
+            reset: function() {
+                this.money = 1000; this.plants = 0; this.landScore = 0;
+                this.states = {}; this.hazardMarkers = []; this.plantMarkers = []; 
+                this.gameOver = false;
+                d3.selectAll('.country').attr("class", "country"); 
+                document.getElementById('game-over-screen').style.display = 'none';
+                document.getElementById('ui-layer').style.display = 'flex';
+                this.updateUI(); visuals.updateMarkers();
+                this.msg("Los geht's, Smithers!");
+            },
+
+            recalcScore: function() {
+                let score = 0;
+                for(let id in this.states) {
+                    if(this.states[id] === 'plant' && this.countryData[id]) score += this.countryData[id].area * 10000;
+                }
+                this.landScore = Math.floor(score);
+            },
+
+            updateUI: function() {
+                document.getElementById('money-display').innerText = Math.floor(this.money);
+                document.getElementById('plant-display').innerText = this.plants;
+                document.getElementById('land-display').innerText = this.landScore;
+                document.getElementById('btn-hounds').classList.toggle('disabled', this.money < 500);
+                document.getElementById('btn-smithers').classList.toggle('disabled', this.money < 2000);
+            },
+            
+            msg: function(text) {
+                const el = document.createElement('div'); el.className = 'msg'; el.innerText = text;
+                const box = document.getElementById('msg-box');
+                while(box.children.length > 1) box.removeChild(box.firstChild);
+                box.appendChild(el);
+            },
+
+            interact: function(id, name, event) {
+                if(this.gameOver) return;
+                const status = this.states[id] || 'clean';
+                let clickX = event.clientX; 
+                let clickY = event.clientY;
+
+                if(event.touches && event.touches.length > 0) {
+                    clickX = event.touches[0].clientX;
+                    clickY = event.touches[0].clientY;
+                }
+
+                if (status === 'clean') {
+                    if (this.money >= 200) {
+                        this.money -= 200;
+                        this.changeState(id, 'plant');
+                        this.plants++;
+                        this.msg(getQuote(name));
+                        visuals.spawnParticle(clickX, clickY, "-$200", "red");
+                        visuals.spawnParticle(clickX, clickY - 30, "🏭", "black");
+                    } else { 
+                        this.msg("Zu wenig Geld, Burns!"); 
+                        visuals.spawnParticle(clickX, clickY, "Kein Cash!", "black");
+                    }
+                } 
+                else if (status === 'protest') {
+                    if (this.money >= 50) {
+                        this.money -= 50;
+                        this.changeState(id, 'plant');
+                        this.msg("Protest beendet.");
+                        visuals.spawnParticle(clickX, clickY, "-$50", "red");
+                    }
+                } 
+                else if (status === 'risk') {
+                    this.changeState(id, 'plant');
+                    this.removeHazard(id);
+                    this.msg("Homer geweckt!");
+                    visuals.spawnParticle(clickX, clickY, "D'oh!", "orange");
+                }
+                
+                this.recalcScore(); this.updateUI(); this.checkWinCondition();
+            },
+
+            changeState: function(id, state) {
+                this.states[id] = state;
+                d3.selectAll('.country').filter(d => d.id === id).attr("class", "country " + state);
+
+                if (state === 'plant') {
+                    if (!this.plantMarkers.find(m => m.id === id)) {
+                        const el = d3.selectAll('.country').filter(d => d.id === id).datum();
+                        if(el) this.plantMarkers.push({id: id, geo: d3.geoCentroid(el)});
+                    }
+                } else {
+                    this.plantMarkers = this.plantMarkers.filter(m => m.id !== id);
+                }
+                visuals.updateMarkers();
+            },
+
+            releaseHounds: function() {
+                if(this.money < 500) return;
+                this.money -= 500;
+                let c = 0;
+                for(let id in this.states) {
+                    if(this.states[id] === 'protest') { this.changeState(id, 'plant'); c++; }
+                }
+                this.msg(c > 0 ? "Hunde losgelassen!" : "Niemand da.");
+                visuals.spawnParticle(window.innerWidth/2, window.innerHeight/2, "🐕 Wuff!", "brown");
+                this.recalcScore(); this.updateUI(); this.checkWinCondition();
+            },
+
+            callSmithers: function() {
+                if(this.money < 2000) return;
+                this.money -= 2000;
+                for(let id in this.states) {
+                    if(this.states[id] === 'meltdown' || this.states[id] === 'risk') {
+                        if(this.states[id] === 'meltdown') this.plants++;
+                        this.changeState(id, 'plant');
+                    }
+                }
+                this.hazardMarkers = []; visuals.updateMarkers();
+                this.msg("Smithers hat aufgeräumt.");
+                visuals.spawnParticle(window.innerWidth/2, window.innerHeight/2, "🧹", "grey");
+                this.recalcScore(); this.updateUI(); this.checkWinCondition();
+            },
+
+            checkWinCondition: function() {
+                let finishedCountries = 0;
+                const allIds = Object.keys(this.countryData);
+                allIds.forEach(id => {
+                    const state = this.states[id] || 'clean';
+                    if (state !== 'clean') finishedCountries++;
+                });
+                if (finishedCountries > 0 && finishedCountries >= allIds.length * 0.9) this.triggerGameOver();
+            },
+
+            triggerGameOver: function() {
+                this.gameOver = true;
+                this.recalcScore();
+                const total = Math.floor(this.money) + this.landScore;
+                document.getElementById('end-money').innerText = "$" + Math.floor(this.money);
+                document.getElementById('end-land').innerText = this.landScore;
+                document.getElementById('end-total').innerText = total;
+                const ratingEl = document.getElementById('end-rating');
+                if (total > 15000) { ratingEl.innerText = "EXCELLENT!"; ratingEl.style.color = "#388E3C"; }
+                else if (total > 5000) { ratingEl.innerText = "NOT BAD!"; ratingEl.style.color = "orange"; }
+                else { ratingEl.innerText = "D'OH!"; ratingEl.style.color = "red"; }
+                document.getElementById('ui-layer').style.display = 'none';
+                document.getElementById('game-over-screen').style.display = 'flex';
+            },
+
+            loop: function() {
+                if(this.gameOver) return;
+                this.money += (this.plants * 3) / 10; 
+                this.updateUI();
+
+                const ids = Object.keys(this.states);
+                if(ids.length > 0 && Math.random() < 0.03) {
+                    const id = ids[Math.floor(Math.random() * ids.length)];
+                    const status = this.states[id];
+                    const name = d3.selectAll('.country').filter(d => d.id === id).datum().properties.name;
+
+                    if(status === 'plant') {
+                        if(Math.random() < 0.5) {
+                            this.changeState(id, 'protest');
+                            this.msg("Lisa protestiert in " + name + "!");
+                            visuals.spawnParticle(window.innerWidth/2, window.innerHeight/2, "🎷", "yellow");
+                            this.recalcScore();
+                            setTimeout(() => {
+                                if(this.states[id] === 'protest') {
+                                    this.plants--;
+                                    this.changeState(id, 'eco');
+                                    this.msg(name + " verloren an Ökos!");
+                                    this.checkWinCondition();
+                                }
+                            }, 5000);
+                        } else {
+                            this.states[id] = 'risk';
+                            const el = d3.selectAll('.country').filter(d => d.id === id).datum();
+                            if(el) {
+                                this.hazardMarkers.push({id: id, type: '🍩', geo: d3.geoCentroid(el)});
+                                visuals.updateMarkers();
+                                this.msg("Homer schläft in " + name + "!");
+                                this.recalcScore();
+                                setTimeout(() => {
+                                    // Wenn Spieler nicht reagiert hat (Status ist immer noch RISK):
+                                    if(this.states[id] === 'risk') {
+                                        this.plants--;
+                                        this.changeState(id, 'meltdown');
+                                        this.removeHazard(id);
+                                        
+                                        // --- SOUND PLAYBACK FIX v2.1 ---
+                                        if (dohSound) {
+                                            // Sicherstellen, dass nichts stummgeschaltet ist
+                                            dohSound.muted = false;
+                                            dohSound.volume = 1.0;
+                                            dohSound.currentTime = 0;
+                                            
+                                            // Play Promise Behandlung
+                                            var playPromise = dohSound.play();
+                                            if (playPromise !== undefined) {
+                                                playPromise.catch(error => {
+                                                    console.error("Playback prevented by browser:", error);
+                                                });
+                                            }
+                                        } else {
+                                            console.log("Sound Objekt nicht vorhanden");
+                                        }
+                                        
+                                        this.msg("KERN-SCHMELZE in " + name + "!");
+                                        this.recalcScore();
+                                        this.checkWinCondition();
+                                    }
+                                }, 4000);
+                            }
+                        }
+                    }
+                }
+            },
+            
+            removeHazard: function(id) {
+                this.hazardMarkers = this.hazardMarkers.filter(m => m.id !== id);
+                visuals.updateMarkers();
+            }
+        };
+
+        // --- VISUALS & FX ---
+        const visuals = {
+            svg: null, projection: null, path: null, g: null, mG: null,
+
+            init: function() {
+                const container = document.getElementById('globe-container');
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                const scale = Math.min(w, h) / 2.2;
+
+                this.svg = d3.select("#globe-container").append("svg")
+                    .attr("width", w).attr("height", h).attr("viewBox", [0,0,w,h]);
+
+                const defs = this.svg.append("defs");
+                const oceanGrad = defs.append("radialGradient")
+                    .attr("id", "oceanGradient")
+                    .attr("cx", "50%").attr("cy", "50%").attr("r", "50%");
+                oceanGrad.append("stop").attr("offset", "0%").attr("stop-color", "#70D1FE");
+                oceanGrad.append("stop").attr("offset", "100%").attr("stop-color", "#40A1CE");
+
+                this.projection = d3.geoOrthographic()
+                    .scale(scale).center([0,0]).translate([w/2, h/2])
+                    .clipAngle(90);
+
+                this.path = d3.geoPath().projection(this.projection);
+                
+                this.svg.append("circle").attr("cx", w/2).attr("cy", h/2).attr("r", scale).attr("class", "atmosphere");
+                this.svg.append("circle").attr("cx", w/2).attr("cy", h/2).attr("r", scale).attr("class", "ocean-fill");
+
+                this.g = this.svg.append("g"); 
+                this.svg.append("circle").attr("cx", w/2).attr("cy", h/2).attr("r", scale).attr("class", "ocean-stroke");
+
+                this.mG = this.svg.append("g"); 
+
+                d3.json('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson').then(data => {
+                    const countries = data.features;
+                    countries.forEach(c => {
+                        if(!c.id) c.id = c.properties.name; 
+                        game.countryData[c.id] = { area: d3.geoArea(c) };
+                    });
+                    game.totalCountries = countries.length;
+
+                    this.g.selectAll("path").data(countries).enter().append("path")
+                        .attr("d", this.path).attr("class", "country")
+                        .on("click", (e, d) => {
+                            e.preventDefault();
+                            game.interact(d.id, d.properties.name, e);
+                        });
+
+                    this.setupZoom(scale);
+                });
+            },
+
+            spawnParticle: function(x, y, text, color) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.innerText = text;
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                p.style.color = color;
+                document.body.appendChild(p);
+                setTimeout(() => { p.remove(); }, 1500);
+            },
+
+            setupZoom: function(baseScale) {
+                const zoom = d3.zoom()
+                    .scaleExtent([0.8, 8]) 
+                    .on("zoom", (event) => {
+                        const t = event.transform;
+                        const newScale = baseScale * t.k;
+                        this.projection.scale(newScale);
+                        const sens = 0.5;
+                        const rotate = [t.x * sens / t.k, Math.max(-90, Math.min(90, -t.y * sens / t.k))];
+                        this.projection.rotate(rotate);
+                        this.svg.selectAll("circle").attr("r", newScale);
+                        this.g.selectAll("path").attr("d", this.path);
+                        this.updateMarkers();
+                    });
+                this.svg.call(zoom);
+            },
+
+            updateMarkers: function() {
+                this.mG.selectAll("text").remove();
+                this.drawList(game.hazardMarkers, "hazard");
+                const atoms = game.plantMarkers.map(p => ({...p, type: '☢️'}));
+                this.drawList(atoms, "atom-marker");
+            },
+
+            drawList: function(list, className) {
+                const center = this.projection.invert([this.svg.attr("width")/2, this.svg.attr("height")/2]);
+                this.mG.selectAll("." + className)
+                    .data(list).enter().append("text").attr("class", className)
+                    .text(d => d.type)
+                    .each(function(d) {
+                        const coords = visuals.projection(d.geo);
+                        if(d3.geoDistance(d.geo, center) < 1.57) {
+                            d3.select(this).attr("x", coords[0]).attr("y", coords[1]).style("display", "block")
+                        } else { d3.select(this).style("display", "none"); }
+                    });
+            }
+        };
+
+        window.addEventListener('resize', () => {
+            const container = document.getElementById('globe-container');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            if(visuals.svg) {
+                visuals.svg.attr("width", w).attr("height", h).attr("viewBox", [0,0,w,h]);
+                visuals.projection.translate([w/2, h/2]);
+                visuals.svg.selectAll("circle").attr("cx",w/2).attr("cy",h/2);
+                visuals.g.selectAll("path").attr("d", visuals.path);
+                visuals.updateMarkers();
+            }
+        });
+
+    </script>
+</body>
+</html>
