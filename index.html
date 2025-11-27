@@ -534,19 +534,18 @@
                                         
                                         // --- SOUND PLAYBACK FIX v2.1 ---
                                         if (dohSound) {
-                                            // Sicherstellen, dass nichts stummgeschaltet ist
-                                            dohSound.muted = false;
-                                            dohSound.volume = 1.0;
-                                            dohSound.currentTime = 0;
-                                            
-                                            // Play Promise Behandlung
-                                            var playPromise = dohSound.play();
+                                        // Erstelle eine Kopie des Sounds für dieses Ereignis
+                                            const soundClone = dohSound.cloneNode(true);
+                                        soundClone.volume = 1.0;
+    
+                                            // Spiele den Klon ab
+                                                var playPromise = soundClone.play();
                                             if (playPromise !== undefined) {
-                                                playPromise.catch(error => {
-                                                    console.error("Playback prevented by browser:", error);
-                                                });
-                                            }
-                                        } else {
+                                            playPromise.catch(error => {
+                                            console.error("Playback prevented by browser:", error);
+                                            });
+                                        }
+                                    } else {
                                             console.log("Sound Objekt nicht vorhanden");
                                         }
                                         
